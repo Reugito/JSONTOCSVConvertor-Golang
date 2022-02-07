@@ -12,6 +12,7 @@ import (
 )
 
 func main() {
+	log.Println("convert nested json App running.........")
 
 	_, err := JSONTOCSVConverter2("JsonData.json", "jsonData.csv")
 
@@ -21,12 +22,12 @@ func main() {
 		log.Println("SuccessFully Converted json data to csv ")
 	}
 
-	_, err = JSONTOCSVConverter2("complexjsondata.json", "compjsonData.csv")
-	if err != nil {
-		log.Println(err)
-	} else {
-		log.Println("SuccessFully Converted json data to csv ")
-	}
+	//_, err = JSONTOCSVConverter2("complexjsondata.json", "compjsonData.csv")
+	//if err != nil {
+	//	log.Println(err)
+	//} else {
+	//	log.Println("SuccessFully Converted json data to csv ")
+	//}
 }
 
 // JSONTOCSVConverter2
@@ -55,10 +56,9 @@ func JSONTOCSVConverter2(jsonFileName, newCSVFileName string) (bool, error) {
 
 	var data []interface{}
 
-	err = json.Unmarshal([]byte(jsonDataFromFile), &data)
+	data, err = unmarshalJsonData(jsonDataFromFile)
 	if err != nil {
-		log.Println("JSONTOCSVConverter() failed To Unmarshal the json Data...........")
-		return false, errors.New("failed To Unmarshal the json Data ")
+		return false, err
 	}
 
 	if data == nil {
@@ -109,6 +109,7 @@ func JSONTOCSVConverter2(jsonFileName, newCSVFileName string) (bool, error) {
 				}
 				err = writer.Write(rowValues)
 				if err != nil {
+					fmt.Println("Failed To Write The Data ")
 					return false, err
 				}
 			}
@@ -146,6 +147,10 @@ func decodeJson(jsonDataForCSVRow map[string]interface{}, nestedKeyName string) 
 				DataMap[nestedKeyName+key] = "null"
 			case string:
 				DataMap[nestedKeyName+key] = vv
+			case int:
+				DataMap[nestedKeyName+key] = strconv.Itoa(vv)
+			case rune:
+				DataMap[nestedKeyName+key] = string(vv)
 			case float64:
 				DataMap[nestedKeyName+key] = strconv.FormatFloat(vv, 'f', -1, 64)
 			case bool:
@@ -186,12 +191,46 @@ func getValuesForCSVRow(headers []string, mapData map[string]interface{}) ([]str
 	} else {
 		var row []string
 		for _, header := range headers {
+			isKeyPresent := false
 			for key, val := range mapData {
 				if header == key {
+					isKeyPresent = true
 					row = append(row, fmt.Sprintf("%s", val))
 				}
 			}
+			if !isKeyPresent {
+				row = append(row, "null")
+			}
 		}
 		return row, nil
+	}
+}
+
+//@note : 	This method is used to unmarshal the json data from file which can be either single json object
+//			or array of json object
+//@param : 	jsonDataFromFile
+//@return :	array of json data object, error
+func unmarshalJsonData(jsonDataFromFile []byte) ([]interface{}, error) {
+	if jsonDataFromFile == nil {
+		return nil, errors.New("unmarshalJsonData() jsonData is nil ")
+	}
+	var data []interface{}
+	err := json.Unmarshal([]byte(jsonDataFromFile), &data)
+
+	if err != nil {
+		if err.Error() == "json: cannot unmarshal object into Go value of type []interface {}" {
+			var newJsonData interface{}
+			err = json.Unmarshal([]byte(jsonDataFromFile), &newJsonData)
+			if err != nil {
+				return nil, err
+			} else {
+				data = append(data, newJsonData)
+				return data, nil
+			}
+		} else {
+			return nil, err
+		}
+	} else {
+		return data, err
 	}
 }

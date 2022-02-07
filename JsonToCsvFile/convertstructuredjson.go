@@ -1,7 +1,6 @@
 package main
 
 import (
-	"Digital_Credit_API/JsonToCsvFile/test"
 	"encoding/csv"
 	"encoding/json"
 	"errors"
@@ -16,7 +15,7 @@ import (
 func main() {
 
 	fmt.Println("Json to CSV App Is running ....................")
-	dataFromDB := test.GetDataFromDB()
+	//dataFromDB := test.GetDataFromDB()
 
 	_, err := JSONTOCSVConverter("JsonData.json", "jsonData.csv")
 
@@ -26,12 +25,12 @@ func main() {
 		log.Println("SuccessFully Converted json data to csv ")
 	}
 
-	_, err = dbDataToCSV(dataFromDB, "DBData.csv")
-	if err != nil {
-		log.Println(err)
-	} else {
-		log.Println("SuccessFully Converted json data to csv ")
-	}
+	//_, err = dbDataToCSV(dataFromDB, "DBData.csv")
+	//if err != nil {
+	//	log.Println(err)
+	//} else {
+	//	log.Println("SuccessFully Converted json data to csv ")
+	//}
 
 }
 
